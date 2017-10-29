@@ -1,6 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
-LOCAL_MODULE:= jsc
-#LOCAL_SRC_FILES := jni/$(TARGET_ARCH_ABI)/libjsc.so
+LOCAL_MODULE:= jscshim
+LOCAL_SRC_FILES := JSCShim.cpp
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/../jsc
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
 include $(BUILD_STATIC_LIBRARY)

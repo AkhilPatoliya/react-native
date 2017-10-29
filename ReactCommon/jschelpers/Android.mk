@@ -20,11 +20,13 @@ CXX11_FLAGS := -std=c++11
 LOCAL_CFLAGS += $(CXX11_FLAGS)
 LOCAL_EXPORT_CPPFLAGS := $(CXX11_FLAGS)
 
+LOCAL_STATIC_LIBRARIES := libjscshim
 LOCAL_SHARED_LIBRARIES := libfolly_json libjsc libglog
 
 include $(BUILD_STATIC_LIBRARY)
 
 $(call import-module,folly)
 $(call import-module,jsc)
+$(call import-module,jscshim)
 $(call import-module,glog)
 $(call import-module,privatedata)

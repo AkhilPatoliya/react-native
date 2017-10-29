@@ -36,7 +36,7 @@ CXX11_FLAGS := -std=c++11
 LOCAL_CFLAGS += $(CXX11_FLAGS)
 LOCAL_EXPORT_CPPFLAGS := $(CXX11_FLAGS)
 
-LOCAL_STATIC_LIBRARIES := jschelpers
+LOCAL_STATIC_LIBRARIES := jschelpers jscshim
 LOCAL_SHARED_LIBRARIES := libfb libfolly_json libjsc libglog
 
 include $(BUILD_STATIC_LIBRARY)
