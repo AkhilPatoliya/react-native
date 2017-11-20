@@ -17,6 +17,7 @@ import com.facebook.common.logging.FLog;
 import com.facebook.infer.annotation.Assertions;
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;
+import com.facebook.react.bridge.queue.LiquidCoreReactQueueConfigurationImpl;
 import com.facebook.react.bridge.queue.MessageQueueThread;
 import com.facebook.react.bridge.queue.QueueThreadExceptionHandler;
 import com.facebook.react.bridge.queue.ReactQueueConfiguration;
@@ -26,6 +27,9 @@ import com.facebook.react.common.ReactConstants;
 import com.facebook.react.common.annotations.VisibleForTesting;
 import com.facebook.systrace.Systrace;
 import com.facebook.systrace.TraceListener;
+
+import org.liquidplayer.javascript.JSContext;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,7 +73,7 @@ public class CatalystInstanceImpl implements CatalystInstance {
   }
 
   // Access from any thread
-  private final ReactQueueConfigurationImpl mReactQueueConfiguration;
+  private final LiquidCoreReactQueueConfigurationImpl mReactQueueConfiguration;
   private final CopyOnWriteArrayList<NotThreadSafeBridgeIdleDebugListener> mBridgeIdleListeners;
   private final AtomicInteger mPendingJSCalls = new AtomicInteger(0);
   private final String mJsPendingCallsTitleForTrace =
@@ -98,6 +102,7 @@ public class CatalystInstanceImpl implements CatalystInstance {
   private native static HybridData initHybrid();
 
   private CatalystInstanceImpl(
+      final JSContext jsContext,
       final ReactQueueConfigurationSpec reactQueueConfigurationSpec,
       final JavaScriptExecutor jsExecutor,
       final NativeModuleRegistry nativeModuleRegistry,
@@ -106,7 +111,8 @@ public class CatalystInstanceImpl implements CatalystInstance {
     Log.d(ReactConstants.TAG, "Initializing React Xplat Bridge.");
     mHybridData = initHybrid();
 
-    mReactQueueConfiguration = ReactQueueConfigurationImpl.create(
+    mReactQueueConfiguration = LiquidCoreReactQueueConfigurationImpl.create(
+        jsContext,
         reactQueueConfigurationSpec,
         new NativeExceptionHandler());
     mBridgeIdleListeners = new CopyOnWriteArrayList<>();
@@ -220,6 +226,11 @@ public class CatalystInstanceImpl implements CatalystInstance {
     mSourceURL = sourceURL;
     jniLoadScriptFromFile(fileName, sourceURL, loadSynchronously);
   }
+
+  /* package */ void setSourceURL(String deviceURL) {
+    mSourceURL = deviceURL;
+  }
+
 
   private native void jniSetSourceURL(String sourceURL);
   private native void jniLoadScriptFromAssets(AssetManager assetManager, String assetURL, boolean loadSynchronously);
@@ -548,6 +559,7 @@ public class CatalystInstanceImpl implements CatalystInstance {
     private @Nullable NativeModuleRegistry mRegistry;
     private @Nullable JavaScriptExecutor mJSExecutor;
     private @Nullable NativeModuleCallExceptionHandler mNativeModuleCallExceptionHandler;
+    private @Nullable JSContext mJsContext;
 
     public Builder setReactQueueConfigurationSpec(
         ReactQueueConfigurationSpec ReactQueueConfigurationSpec) {
@@ -570,6 +582,11 @@ public class CatalystInstanceImpl implements CatalystInstance {
       return this;
     }
 
+    public Builder setJSContext(JSContext jsContext) {
+      mJsContext = jsContext;
+      return this;
+    }
+
     public Builder setNativeModuleCallExceptionHandler(
         NativeModuleCallExceptionHandler handler) {
       mNativeModuleCallExceptionHandler = handler;
@@ -578,6 +595,7 @@ public class CatalystInstanceImpl implements CatalystInstance {
 
     public CatalystInstanceImpl build() {
       return new CatalystInstanceImpl(
+          Assertions.assertNotNull(mJsContext),
           Assertions.assertNotNull(mReactQueueConfigurationSpec),
           Assertions.assertNotNull(mJSExecutor),
           Assertions.assertNotNull(mRegistry),

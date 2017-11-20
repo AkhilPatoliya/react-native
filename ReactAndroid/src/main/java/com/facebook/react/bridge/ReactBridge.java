@@ -11,6 +11,8 @@ package com.facebook.react.bridge;
 
 import com.facebook.soloader.SoLoader;
 
+import org.liquidplayer.jscshim.JSCShim;
+
 public class ReactBridge {
   private static boolean sDidInit = false;
   public static void staticInit() {
@@ -18,6 +20,9 @@ public class ReactBridge {
     // which will do its own locking internally
     if (!sDidInit) {
       SoLoader.loadLibrary("reactnativejni");
+
+      // Connects reactnativejni to the JSC->V8  bridge
+      JSCShim.staticInit();
       sDidInit = true;
     }
   }

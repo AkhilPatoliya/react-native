@@ -39,6 +39,8 @@
 #include "RecoverableError.h"
 #include "SystraceSection.h"
 
+#include <android/log.h>
+
 #if defined(WITH_JSC_MEMORY_PRESSURE)
 #include <jsc_memory.h>
 #endif
@@ -193,20 +195,28 @@ namespace facebook {
 #if defined(WITH_FB_JSC_TUNING) && defined(__ANDROID__)
       configureJSCForAndroid(m_jscConfig);
 #endif
+      
+      const std::string str_jsContext = m_jscConfig.getDefault("JSContext", "0").getString();
+      long lContext = atol (str_jsContext.c_str());
+      JSGlobalContextRef jsContext = reinterpret_cast<JSGlobalContextRef>(lContext);
 
-      // Create a custom global class, so we can store data in it later using JSObjectSetPrivate
-      JSClassRef globalClass = nullptr;
-      {
-        SystraceSection s_("JSClassCreate");
-        JSClassDefinition definition = kJSClassDefinitionEmpty;
-        definition.attributes |= kJSClassAttributeNoAutomaticPrototype;
-        globalClass = JSC_JSClassCreate(useCustomJSC, &definition);
+      if (!jsContext) {
+        // Create a custom global class, so we can store data in it later using JSObjectSetPrivate
+        JSClassRef globalClass = nullptr;
+        {
+          SystraceSection s_("JSClassCreate");
+          JSClassDefinition definition = kJSClassDefinitionEmpty;
+          definition.attributes |= kJSClassAttributeNoAutomaticPrototype;
+          globalClass = JSC_JSClassCreate(useCustomJSC, &definition);
+        }
+        {
+          SystraceSection s_("JSGlobalContextCreateInGroup");
+          m_context = JSC_JSGlobalContextCreateInGroup(useCustomJSC, nullptr, globalClass);
+        }
+        JSC_JSClassRelease(useCustomJSC, globalClass);
+      } else {
+        m_context = jsContext;
       }
-      {
-        SystraceSection s_("JSGlobalContextCreateInGroup");
-        m_context = JSC_JSGlobalContextCreateInGroup(useCustomJSC, nullptr, globalClass);
-      }
-      JSC_JSClassRelease(useCustomJSC, globalClass);
 
       // Add a pointer to ourselves so we can retrieve it later in our hooks
       Object::getGlobalObject(m_context).setPrivate(this);

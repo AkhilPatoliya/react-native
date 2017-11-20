@@ -21,6 +21,8 @@ import com.facebook.react.common.LifecycleState;
 import com.facebook.react.devsupport.RedBoxHandler;
 import com.facebook.react.uimanager.UIImplementationProvider;
 
+import org.liquidplayer.javascript.JSContext;
+
 /**
  * Simple class that holds an instance of {@link ReactInstanceManager}. This can be used in your
  * {@link Application class} (see {@link ReactApplication}), or as a static field.
@@ -71,7 +73,8 @@ public abstract class ReactNativeHost {
       .setRedBoxHandler(getRedBoxHandler())
       .setJavaScriptExecutorFactory(getJavaScriptExecutorFactory())
       .setUIImplementationProvider(getUIImplementationProvider())
-      .setInitialLifecycleState(LifecycleState.BEFORE_CREATE);
+      .setInitialLifecycleState(LifecycleState.BEFORE_CREATE)
+      .setJSContext(getJSContext());
 
     for (ReactPackage reactPackage : getPackages()) {
       builder.addPackage(reactPackage);
@@ -157,4 +160,6 @@ public abstract class ReactNativeHost {
    * you'll want to include more packages here.
    */
   protected abstract List<ReactPackage> getPackages();
+
+  protected @Nullable JSContext getJSContext() { return null; }
 }

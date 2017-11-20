@@ -9,6 +9,8 @@
 
 package com.facebook.react.bridge;
 
+import org.liquidplayer.javascript.JSContextGroup;
+
 public class JSCJavaScriptExecutorFactory implements JavaScriptExecutorFactory {
   private final String mAppName;
   private final String mDeviceName;
@@ -24,6 +26,8 @@ public class JSCJavaScriptExecutorFactory implements JavaScriptExecutorFactory {
     jscConfig.putString("OwnerIdentity", "ReactNative");
     jscConfig.putString("AppIdentity", mAppName);
     jscConfig.putString("DeviceIdentity", mDeviceName);
+
     return new JSCJavaScriptExecutor(jscConfig);
   }
+
 }

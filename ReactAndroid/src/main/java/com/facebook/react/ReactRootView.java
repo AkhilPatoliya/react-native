@@ -383,6 +383,11 @@ public class ReactRootView extends SizeMonitoringFrameLayout
     }
   }
 
+  public void startApplicationFromJavascript(String moduleName) {
+    mJSModuleName = moduleName;
+    runApplication();
+  }
+
   /**
    * Calls into JS to start the React application. Can be called multiple times with the
    * same rootTag, which will re-render the application from the root.

@@ -19,6 +19,9 @@ import com.facebook.react.devsupport.interfaces.DevBundleDownloadListener;
 import com.facebook.react.devsupport.interfaces.DevSupportManager;
 import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
 import com.facebook.react.uimanager.UIImplementationProvider;
+
+import org.liquidplayer.javascript.JSContext;
+
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -51,6 +54,7 @@ public class ReactInstanceManagerBuilder {
   private boolean mEnableSplitPackage;
   private boolean mUseOnlyDefaultPackages;
   private int mMinTimeLeftInFrameForNonBatchedOperationMs = -1;
+  private JSContext mJsContext = null;
 
   /* package protected */ ReactInstanceManagerBuilder() {
   }
@@ -120,6 +124,11 @@ public class ReactInstanceManagerBuilder {
    */
   public ReactInstanceManagerBuilder setJSMainModulePath(String jsMainModulePath) {
     mJSMainModulePath = jsMainModulePath;
+    return this;
+  }
+
+  public ReactInstanceManagerBuilder setJSContext(JSContext jsContext) {
+    mJsContext = jsContext;
     return this;
   }
 
@@ -295,6 +304,7 @@ public class ReactInstanceManagerBuilder {
         mMinNumShakes,
         mEnableSplitPackage,
         mUseOnlyDefaultPackages,
-        mMinTimeLeftInFrameForNonBatchedOperationMs);
+        mMinTimeLeftInFrameForNonBatchedOperationMs,
+        mJsContext);
   }
 }
