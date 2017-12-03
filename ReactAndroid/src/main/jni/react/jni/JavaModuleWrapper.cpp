@@ -83,8 +83,9 @@ folly::dynamic JavaNativeModule::getConstants() {
   }
 }
 
-void JavaNativeModule::invoke(unsigned int reactMethodId, folly::dynamic&& params, int callId) {
-  messageQueueThread_->runOnQueue([this, reactMethodId, params=std::move(params), callId] {
+void JavaNativeModule::invoke(unsigned int reactMethodId, folly::dynamic&& _params, int callId) {
+  auto params=std::move(_params);
+  messageQueueThread_->runOnQueue([this, reactMethodId, params, callId] {
     static auto invokeMethod = wrapper_->getClass()->getMethod<void(jint, ReadableNativeArray::javaobject)>("invoke");
     #ifdef WITH_FBSYSTRACE
     if (callId != -1) {
@@ -155,13 +156,14 @@ folly::dynamic NewJavaNativeModule::getConstants() {
   }
 }
 
-void NewJavaNativeModule::invoke(unsigned int reactMethodId, folly::dynamic&& params, int callId) {
+void NewJavaNativeModule::invoke(unsigned int reactMethodId, folly::dynamic&& _params, int callId) {
   if (reactMethodId >= methods_.size()) {
     throw std::invalid_argument(
       folly::to<std::string>("methodId ", reactMethodId, " out of range [0..", methods_.size(), "]"));
   }
   CHECK(!methods_[reactMethodId].isSyncHook()) << "Trying to invoke a synchronous hook asynchronously";
-  messageQueueThread_->runOnQueue([this, reactMethodId, params=std::move(params), callId] () mutable {
+  auto params=std::move(_params);
+  messageQueueThread_->runOnQueue([this, reactMethodId, params, callId] () mutable {
     #ifdef WITH_FBSYSTRACE
     if (callId != -1) {
       fbsystrace_end_async_flow(TRACE_TAG_REACT_APPS, "native", callId);

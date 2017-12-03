@@ -14,13 +14,14 @@ std::string ModuleHolder::getName() const {
 }
 
 xplat::module::CxxModule::Provider ModuleHolder::getProvider() const {
-  return [self=jni::make_global(self())] {
+  auto _self=jni::make_global(self());
+  return [_self] {
     static auto method =
       ModuleHolder::javaClassStatic()->getMethod<JNativeModule::javaobject()>(
         "getModule");
     // This is the call which uses the lazy Java Provider to instantiate the
     // Java CxxModuleWrapper which contains the CxxModule.
-    auto module = method(self);
+    auto module = method(_self);
     CHECK(module->isInstanceOf(CxxModuleWrapperBase::javaClassStatic()))
       << "module isn't a C++ module";
     auto cxxModule = jni::static_ref_cast<CxxModuleWrapperBase::javaobject>(module);

@@ -73,7 +73,7 @@ public class CatalystInstanceImpl implements CatalystInstance {
   }
 
   // Access from any thread
-  private final LiquidCoreReactQueueConfigurationImpl mReactQueueConfiguration;
+  private final ReactQueueConfiguration mReactQueueConfiguration;
   private final CopyOnWriteArrayList<NotThreadSafeBridgeIdleDebugListener> mBridgeIdleListeners;
   private final AtomicInteger mPendingJSCalls = new AtomicInteger(0);
   private final String mJsPendingCallsTitleForTrace =
@@ -111,10 +111,16 @@ public class CatalystInstanceImpl implements CatalystInstance {
     Log.d(ReactConstants.TAG, "Initializing React Xplat Bridge.");
     mHybridData = initHybrid();
 
-    mReactQueueConfiguration = LiquidCoreReactQueueConfigurationImpl.create(
+    if (jsContext != null) {
+      mReactQueueConfiguration = LiquidCoreReactQueueConfigurationImpl.create(
         jsContext,
         reactQueueConfigurationSpec,
         new NativeExceptionHandler());
+    } else {
+      mReactQueueConfiguration = ReactQueueConfigurationImpl.create(
+        reactQueueConfigurationSpec,
+        new NativeExceptionHandler());
+    }
     mBridgeIdleListeners = new CopyOnWriteArrayList<>();
     mNativeModuleRegistry = nativeModuleRegistry;
     mJSModuleRegistry = new JavaScriptModuleRegistry();
@@ -595,7 +601,8 @@ public class CatalystInstanceImpl implements CatalystInstance {
 
     public CatalystInstanceImpl build() {
       return new CatalystInstanceImpl(
-          Assertions.assertNotNull(mJsContext),
+          //Assertions.assertNotNull(mJsContext),
+          mJsContext,
           Assertions.assertNotNull(mReactQueueConfigurationSpec),
           Assertions.assertNotNull(mJSExecutor),
           Assertions.assertNotNull(mRegistry),

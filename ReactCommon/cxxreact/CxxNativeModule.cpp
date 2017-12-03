@@ -22,7 +22,8 @@ std::function<void(folly::dynamic)> makeCallback(
   }
 
   auto id = callbackId.asInt();
-  return [winstance = std::move(instance), id](folly::dynamic args) {
+  auto winstance = std::move(instance);
+  return [winstance, id](folly::dynamic args) {
     if (auto instance = winstance.lock()) {
       instance->callJSCallback(id, std::move(args));
     }
@@ -38,8 +39,9 @@ namespace {
  * function<void(dynamic)>) to avoid the extra copy and indirect call.
  */
 CxxModule::Callback convertCallback(
-    std::function<void(folly::dynamic)> callback) {
-  return [callback = std::move(callback)](std::vector<folly::dynamic> args) {
+    std::function<void(folly::dynamic)> _callback) {
+  auto callback = std::move(_callback);
+  return [callback](std::vector<folly::dynamic> args) {
     callback(folly::dynamic(std::make_move_iterator(args.begin()),
                             std::make_move_iterator(args.end())));
   };
@@ -128,7 +130,8 @@ void CxxNativeModule::invoke(unsigned int reactMethodId, folly::dynamic&& params
   // stack.  I'm told that will be possible in the future.  TODO
   // mhorowitz #7128529: convert C++ exceptions to Java
 
-  messageQueueThread_->runOnQueue([method, params=std::move(params), first, second, callId] () {
+  auto _params=std::move(params);
+  messageQueueThread_->runOnQueue([method, _params, first, second, callId] () {
   #ifdef WITH_FBSYSTRACE
     if (callId != -1) {
       fbsystrace_end_async_flow(TRACE_TAG_REACT_APPS, "native", callId);
@@ -136,7 +139,7 @@ void CxxNativeModule::invoke(unsigned int reactMethodId, folly::dynamic&& params
   #endif
     SystraceSection s(method.name.c_str());
     try {
-      method.func(std::move(params), first, second);
+      method.func(std::move(_params), first, second);
     } catch (const facebook::xplat::JsArgumentException& ex) {
       throw;
     } catch (std::exception& e) {

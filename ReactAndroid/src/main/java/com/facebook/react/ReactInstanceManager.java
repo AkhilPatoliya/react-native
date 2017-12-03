@@ -204,7 +204,8 @@ public class ReactInstanceManager {
         JSContext jsContext) {
       mJsExecutorFactory = Assertions.assertNotNull(jsExecutorFactory);
       mJsBundleLoader = Assertions.assertNotNull(jsBundleLoader);
-      mJsContext = Assertions.assertNotNull(jsContext);
+      //mJsContext = Assertions.assertNotNull(jsContext);
+      mJsContext = jsContext;
     }
 
     public JavaScriptExecutorFactory getJsExecutorFactory() {

@@ -1,9 +1,3 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-def workspaceRootDir = new File( rootProject.projectDir, '../../' )
-
-include ':LiquidCoreAndroid'
-project(':LiquidCoreAndroid').projectDir = new File(
-        workspaceRootDir, 'LiquidCore/LiquidCoreAndroid')
-
-include ':ReactAndroid' //, ':RNTester:android:app'
+include ':ReactAndroid', ':RNTester:android:app'

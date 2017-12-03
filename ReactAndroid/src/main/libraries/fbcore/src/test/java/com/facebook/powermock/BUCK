@@ -126,7 +126,7 @@ remote_file(
     sha1 = "a9cbcdfb7e9f86fbc74d3afae65f2248bfbf82a0",
     url = "mvn:org.javassist:javassist:jar:3.20.0-GA",
 )
-
+/*
 prebuilt_jar(
     name = "mockito-all",
     binary_jar = ":download-mockito-all",
@@ -138,7 +138,7 @@ remote_file(
     sha1 = "539df70269cc254a58cccc5d8e43286b4a73bf30",
     url = "mvn:org.mockito:mockito-all:jar:1.10.19",
 )
-
+*/
 prebuilt_jar(
     name = "xmlpull",
     binary_jar = ":download-xmlpull",

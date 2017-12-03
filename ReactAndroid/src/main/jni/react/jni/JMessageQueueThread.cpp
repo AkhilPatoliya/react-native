@@ -28,8 +28,9 @@ struct JavaJSException : jni::JavaClass<JavaJSException, JThrowable> {
   }
 };
 
-std::function<void()> wrapRunnable(std::function<void()>&& runnable) {
-  return [runnable=std::move(runnable)] {
+std::function<void()> wrapRunnable(std::function<void()>&& _runnable) {
+  auto runnable=std::move(_runnable);
+  return [runnable] {
     try {
       runnable();
     } catch (const JSException& ex) {

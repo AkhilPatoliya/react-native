@@ -92,12 +92,17 @@ NativeToJsBridge::~NativeToJsBridge() {
 
 void NativeToJsBridge::loadApplication(
     std::unique_ptr<RAMBundleRegistry> bundleRegistry,
-    std::unique_ptr<const JSBigString> startupScript,
-    std::string startupScriptSourceURL) {
+    std::unique_ptr<const JSBigString> _startupScript,
+    std::string _startupScriptSourceURL) {
+
+    auto bundleRegistryWrap=folly::makeMoveWrapper(std::move(bundleRegistry));
+    auto startupScript=folly::makeMoveWrapper(std::move(_startupScript));
+    auto startupScriptSourceURL=std::move(_startupScriptSourceURL);
+
   runOnExecutorQueue(
-      [bundleRegistryWrap=folly::makeMoveWrapper(std::move(bundleRegistry)),
-       startupScript=folly::makeMoveWrapper(std::move(startupScript)),
-       startupScriptSourceURL=std::move(startupScriptSourceURL)]
+      [bundleRegistryWrap,
+       startupScript,
+       startupScriptSourceURL]
         (JSExecutor* executor) mutable {
     auto bundleRegistry = bundleRegistryWrap.move();
     if (bundleRegistry) {
@@ -120,9 +125,9 @@ void NativeToJsBridge::loadApplicationSync(
 }
 
 void NativeToJsBridge::callFunction(
-    std::string&& module,
-    std::string&& method,
-    folly::dynamic&& arguments) {
+    std::string&& _module,
+    std::string&& _method,
+    folly::dynamic&& _arguments) {
   int systraceCookie = -1;
   #ifdef WITH_FBSYSTRACE
   systraceCookie = m_systraceCookie++;
@@ -132,7 +137,11 @@ void NativeToJsBridge::callFunction(
       systraceCookie);
   #endif
 
-  runOnExecutorQueue([module = std::move(module), method = std::move(method), arguments = std::move(arguments), systraceCookie]
+  auto module = std::move(_module);
+  auto method = std::move(_method);
+  auto arguments = std::move(_arguments);
+
+  runOnExecutorQueue([module, method, arguments, systraceCookie]
     (JSExecutor* executor) {
       #ifdef WITH_FBSYSTRACE
       FbSystraceAsyncFlow::end(
@@ -148,7 +157,7 @@ void NativeToJsBridge::callFunction(
     });
 }
 
-void NativeToJsBridge::invokeCallback(double callbackId, folly::dynamic&& arguments) {
+void NativeToJsBridge::invokeCallback(double callbackId, folly::dynamic&& _arguments) {
   int systraceCookie = -1;
   #ifdef WITH_FBSYSTRACE
   systraceCookie = m_systraceCookie++;
@@ -158,7 +167,9 @@ void NativeToJsBridge::invokeCallback(double callbackId, folly::dynamic&& argume
       systraceCookie);
   #endif
 
-  runOnExecutorQueue([callbackId, arguments = std::move(arguments), systraceCookie]
+  auto arguments = std::move(_arguments);
+
+  runOnExecutorQueue([callbackId, arguments, systraceCookie]
     (JSExecutor* executor) {
       #ifdef WITH_FBSYSTRACE
       FbSystraceAsyncFlow::end(
@@ -171,9 +182,13 @@ void NativeToJsBridge::invokeCallback(double callbackId, folly::dynamic&& argume
     });
 }
 
-void NativeToJsBridge::setGlobalVariable(std::string propName,
-                                         std::unique_ptr<const JSBigString> jsonValue) {
-  runOnExecutorQueue([propName=std::move(propName), jsonValue=folly::makeMoveWrapper(std::move(jsonValue))]
+void NativeToJsBridge::setGlobalVariable(std::string _propName,
+                                         std::unique_ptr<const JSBigString> _jsonValue) {
+
+  auto propName=std::move(_propName);
+  auto jsonValue=folly::makeMoveWrapper(std::move(_jsonValue));
+
+  runOnExecutorQueue([propName, jsonValue]
     (JSExecutor* executor) mutable {
       executor->setGlobalVariable(propName, jsonValue.move());
     });
@@ -204,13 +219,14 @@ void NativeToJsBridge::destroy() {
   });
 }
 
-void NativeToJsBridge::runOnExecutorQueue(std::function<void(JSExecutor*)> task) {
+void NativeToJsBridge::runOnExecutorQueue(std::function<void(JSExecutor*)> _task) {
   if (*m_destroyed) {
     return;
   }
 
   std::shared_ptr<bool> isDestroyed = m_destroyed;
-  m_executorMessageQueueThread->runOnQueue([this, isDestroyed, task=std::move(task)] {
+  auto task=std::move(_task);
+  m_executorMessageQueueThread->runOnQueue([this, isDestroyed, task] {
     if (*isDestroyed) {
       return;
     }

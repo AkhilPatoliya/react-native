@@ -132,13 +132,15 @@ public:
     // limitation I do not understand.
 
     Method(std::string aname,
-           std::function<folly::dynamic()>&& afunc,
+           std::function<folly::dynamic()>&& _afunc,
            SyncTagType)
       : name(std::move(aname))
       , callbacks(0)
-      , syncFunc([afunc=std::move(afunc)] (const folly::dynamic&)
-                 { return afunc(); })
-    {}
+    {
+      auto afunc=std::move(_afunc);
+      syncFunc = [afunc] (const folly::dynamic&)
+                 { return afunc(); };
+    }
 
     Method(std::string aname,
            std::function<folly::dynamic(folly::dynamic)>&& afunc,

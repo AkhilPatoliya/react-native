@@ -145,7 +145,7 @@ task downloadJSCShim(type: Download) {
 }
 
 // Create Android.mk library module based on so files from mvn + include headers fetched from webkit.org
-task prepareJSC(dependsOn: dependenciesPath ? [] : [downloadJSCHeaders]) << {
+task prepareJSC(dependsOn: dependenciesPath ? [] : [downloadJSCHeaders]) doLast {
     copy {
         from dependenciesPath ? "$dependenciesPath/jsc-headers" : {downloadJSCHeaders.dest}
         from 'src/main/jni/third-party/jsc/Android.mk'
@@ -155,7 +155,7 @@ task prepareJSC(dependsOn: dependenciesPath ? [] : [downloadJSCHeaders]) << {
     }
 }
 
-task prepareJSCShim(dependsOn: dependenciesPath ? [] : [downloadJSCShim]) << {
+task prepareJSCShim(dependsOn: dependenciesPath ? [] : [downloadJSCShim]) doLast {
     copy {
         from 'src/main/jni/third-party/jscshim/Android.mk'
         from dependenciesPath ? "$dependenciesPath/jscshim-src" : {downloadJSCShim.dest}
@@ -267,7 +267,7 @@ android {
         buildConfigField 'int', 'EXOPACKAGE_FLAGS', '0'
         testApplicationId "com.facebook.react.tests.gradle"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        //multiDexEnabled true
+        multiDexEnabled true
     }
 
     sourceSets.main {
@@ -294,7 +294,12 @@ android {
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/LICENSE'
     }
+
+    dexOptions {
+        preDexLibraries = false
+    }
 }
+
 
 repositories {
     google()
@@ -314,21 +319,25 @@ dependencies {
     implementation 'com.squareup.okio:okio:1.13.0'
     implementation 'com.github.LiquidPlayer:LiquidCore:0.3.1'
 
-    debugImplementation ("junit:junit:${JUNIT_VERSION}")
-    /*
-    debugImplementation ("org.powermock:powermock-api-mockito:${POWERMOCK_VERSION}")
+    debugImplementation "junit:junit:${JUNIT_VERSION}"
+    debugImplementation ("org.powermock:powermock-api-mockito:${POWERMOCK_VERSION}") {
+        exclude module : 'mockito-all'
+    }
     debugImplementation "org.powermock:powermock-module-junit4-rule:${POWERMOCK_VERSION}"
-    debugImplementation "org.powermock:powermock-classloading-xstream:${POWERMOCK_VERSION}"
+    debugImplementation ("org.powermock:powermock-classloading-xstream:${POWERMOCK_VERSION}") {
+        exclude group  : 'xmlpull'
+    }
     debugImplementation "org.mockito:mockito-core:${MOCKITO_CORE_VERSION}"
-    */
     debugImplementation "org.easytesting:fest-assert-core:${FEST_ASSERT_CORE_VERSION}"
     debugImplementation "org.robolectric:robolectric:${ROBOLECTRIC_VERSION}"
 
     androidTestImplementation fileTree(dir: 'src/main/third-party/java/buck-android-support/', include: ['*.jar'])
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    /*
     androidTestImplementation "org.mockito:mockito-core:${MOCKITO_CORE_VERSION}"
-    */
 }
 
 apply from: 'release.gradle'
+
+apply plugin: 'com.github.dcendents.android-maven'
+group='com.github.liquidplayer'
+
