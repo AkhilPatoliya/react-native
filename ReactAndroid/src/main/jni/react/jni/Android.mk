@@ -37,15 +37,19 @@ LOCAL_CFLAGS += $(CXX11_FLAGS)
 LOCAL_EXPORT_CPPFLAGS := $(CXX11_FLAGS)
 
 LOCAL_LDLIBS += -landroid
-LOCAL_SHARED_LIBRARIES := libfolly_json libjsc libglog_init libyoga libprivatedata
-LOCAL_STATIC_LIBRARIES := libreactnative
+ifneq ($(MAKECMDGOALS),clean)
+  LOCAL_SHARED_LIBRARIES := libfolly_json libjsc libglog_init libyoga libprivatedata
+  LOCAL_STATIC_LIBRARIES := libreactnative
+endif
 
 include $(BUILD_SHARED_LIBRARY)
 
 $(call import-module,cxxreact)
 $(call import-module,privatedata)
 $(call import-module,fb)
-$(call import-module,fbgloginit)
-$(call import-module,folly)
-$(call import-module,jsc)
+ifneq ($(MAKECMDGOALS),clean)
+  $(call import-module,fbgloginit)
+  $(call import-module,folly)
+  $(call import-module,jsc)
+endif
 $(call import-module,yogajni)

@@ -41,9 +41,11 @@ LOCAL_SHARED_LIBRARIES := libfb libfolly_json libjsc libglog
 
 include $(BUILD_STATIC_LIBRARY)
 
-$(call import-module,fb)
-$(call import-module,folly)
-$(call import-module,jsc)
-$(call import-module,glog)
-$(call import-module,jschelpers)
-$(call import-module,privatedata)
+ifneq ($(MAKECMDGOALS),clean)
+  $(call import-module,fb)
+  $(call import-module,folly)
+  $(call import-module,jsc)
+  $(call import-module,glog)
+  $(call import-module,jschelpers)
+  $(call import-module,privatedata)
+endif
